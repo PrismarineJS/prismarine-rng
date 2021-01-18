@@ -1,7 +1,7 @@
 {
-  "name": "prismarine-template",
+  "name": "prismarine-rng",
   "version": "1.0.0",
-  "description": "A template repository to make it easy to create new prismarine repo",
+  "description": "Collection of utilities to work with minecraft RNG.",
   "main": "index.js",
   "scripts": {
     "test": "jest --verbose",
@@ -11,21 +11,30 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PrismarineJS/prismarine-template.git"
+    "url": "git+https://github.com/PrismarineJS/prismarine-rng.git"
   },
   "keywords": [
     "prismarine",
-    "template"
+    "rng",
+    "seed",
+    "java",
+    "random"
   ],
-  "author": "Romain Beaumont",
+  "author": "Karang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/PrismarineJS/prismarine-template/issues"
+    "url": "https://github.com/PrismarineJS/prismarine-rng/issues"
   },
-  "homepage": "https://github.com/PrismarineJS/prismarine-template#readme",
+  "standard": {
+    "parser": "babel-eslint"
+  },
+  "homepage": "https://github.com/PrismarineJS/prismarine-rng#readme",
   "devDependencies": {
+    "minecraft-data": "^2.73.1",
+    "prismarine-item": "^1.5.0",
+    "babel-eslint": "^10.1.0",
     "jest": "^26.1.0",
-    "prismarine-template": "file:.",
-    "standard": "^16.0.1"
+    "prismarine-rng": "file:.",
+    "standard": "^16.0.3"
   }
 }
