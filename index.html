@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+    <title>PrismarineJS - Biome Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <script src="index.js"></script>
+    <style type="text/css">
+      html {
+        overflow: hidden;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #mapid {
+        height: 100%;
+        width: 100%;
+        font-size: 0;
+        margin: 0;
+        padding: 0;
+      }
+      canvas {
+        image-rendering: optimizeSpeed;             /* Older versions of FF          */
+        image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+        image-rendering: -webkit-optimize-contrast; /* Safari                        */
+        image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+        image-rendering: pixelated;                 /* Awesome future-browsers       */
+        -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+      }
+    </style>
+  </head>
+  <body>
+
+  <div id="mapid"></div>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search)
+    const seed = urlParams.get('seed')
+    
+    const worldSeed = seed ? BigInt(seed) : 541515181818n
+    const overworld = new OverworldBiomeProvider(mcData, worldSeed)
+
+    function generate(coords, size=64) {
+      const minZ = coords.y * size
+      const minX = coords.x * size
+      // console.log(coords, minX, minZ)
+
+      const layer = overworld.scales[coords.z]
+      const biomes = []
+      for (let z = 0; z < size; z++) {
+        biomes.push([])
+        for (let x = 0; x < size; x++) {
+          const id = layer.sample(minX + x, 0, minZ + z) & 0xFF
+          if (!mcData.biomes[id]) console.log(id)
+          biomes[z].push(mcData.biomes[id].color)
+        }
+      }
+      return biomes
+    }
+
+    const map = L.map('mapid', {
+      crs: L.CRS.Simple,
+      center: [0, 0],
+      zoom: 5,
+      maxZoom: overworld.scales.length - 1
+    })
+
+    const cache = {}
+    L.GridLayer.Biomes = L.GridLayer.extend({
+      createTile: (coords) => {
+        const hash = `${coords.x},${coords.y},${coords.z}`
+        if (cache[hash]) return cache[hash]
+
+        const size = 64
+        const biomes = generate(coords)
+        
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        canvas.width = size
+        canvas.height = size
+        const img = ctx.createImageData(size, size)
+        let i = 0
+        for (let z = 0; z < size; z++) {
+          for (let x = 0; x < size; x++) {
+            const c = biomes[z][x]
+            img.data[i++] = (c >> 16) & 0xff
+            img.data[i++] = (c >> 8) & 0xff
+            img.data[i++] = c & 0xff
+            img.data[i++] = 0xff
+          }
+        }
+        ctx.putImageData(img, 0, 0)
+        cache[hash] = canvas
+        return canvas
+      },
+
+      getAttribution: function() {
+        return "<a href='https://github.com/PrismarineJS/prismarine-rng'>PrismarineJS</a>"
+      }
+    })
+
+    map.addLayer( new L.GridLayer.Biomes() )
+  </script>
+  </body>
+</html>
