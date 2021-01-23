@@ -1,0 +1,46 @@
+{
+  "name": "prismarine-rng",
+  "version": "1.0.0",
+  "description": "Collection of utilities to work with minecraft RNG.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --verbose",
+    "pretest": "npm run lint",
+    "lint": "standard",
+    "fix": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrismarineJS/prismarine-rng.git"
+  },
+  "keywords": [
+    "prismarine",
+    "rng",
+    "seed",
+    "java",
+    "random"
+  ],
+  "author": "Karang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PrismarineJS/prismarine-rng/issues"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "ignore": [
+      "examples/biomemap/"
+    ]
+  },
+  "homepage": "https://github.com/PrismarineJS/prismarine-rng#readme",
+  "dependencies": {
+    "minecraft-data": "^2.74.0",
+    "prismarine-item": "^1.5.0"
+  },
+  "devDependencies": {
+    "canvas": "^2.6.1",
+    "babel-eslint": "^10.1.0",
+    "jest": "^26.1.0",
+    "prismarine-rng": "file:.",
+    "standard": "^16.0.3"
+  }
+}
