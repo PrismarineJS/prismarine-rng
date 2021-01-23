@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-    <script src="index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-hash/0.2.1/leaflet-hash.min.js" integrity="sha512-0A4MbfuZq5Au9EdpI1S5rUTXlibNBi8CuZ/X3ycwXyZiCjNzpiO9YH6EMqPgzZm6vfNCuZStBQHjnO17nIC0IQ==" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-mouse-position@1.2.0/src/L.Control.MousePosition.min.js"></script>
     <style type="text/css">
       html {
         overflow: hidden;
@@ -31,6 +32,15 @@
         image-rendering: pixelated;                 /* Awesome future-browsers       */
         -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
       }
+
+      .leaflet-container .leaflet-control-mouseposition {
+        background-color: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 0 5px #bbb;
+        padding: 0 5px;
+        margin:0;
+        color: #333;
+        font: 11px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif;
+      }
     </style>
   </head>
   <body>
@@ -40,61 +50,69 @@
     const urlParams = new URLSearchParams(window.location.search)
     const seed = urlParams.get('seed')
     
-    const worldSeed = seed ? BigInt(seed) : 541515181818n
-    const overworld = new OverworldBiomeProvider(mcData, worldSeed)
-
-    function generate(coords, size=64) {
-      const minZ = coords.y * size
-      const minX = coords.x * size
-      // console.log(coords, minX, minZ)
-
-      const layer = overworld.scales[coords.z]
-      const biomes = []
-      for (let z = 0; z < size; z++) {
-        biomes.push([])
-        for (let x = 0; x < size; x++) {
-          const id = layer.sample(minX + x, 0, minZ + z) & 0xFF
-          if (!mcData.biomes[id]) console.log(id)
-          biomes[z].push(mcData.biomes[id].color)
-        }
-      }
-      return biomes
-    }
+    const worldSeed = seed ? seed : '541515181818'
 
     const map = L.map('mapid', {
       crs: L.CRS.Simple,
       center: [0, 0],
       zoom: 5,
-      maxZoom: overworld.scales.length - 1
+      maxZoom: 10
     })
 
-    const cache = {}
     L.GridLayer.Biomes = L.GridLayer.extend({
-      createTile: (coords) => {
-        const hash = `${coords.x},${coords.y},${coords.z}`
-        if (cache[hash]) return cache[hash]
-
-        const size = 64
-        const biomes = generate(coords)
-        
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
-        canvas.width = size
-        canvas.height = size
-        const img = ctx.createImageData(size, size)
-        let i = 0
-        for (let z = 0; z < size; z++) {
-          for (let x = 0; x < size; x++) {
-            const c = biomes[z][x]
-            img.data[i++] = (c >> 16) & 0xff
-            img.data[i++] = (c >> 8) & 0xff
-            img.data[i++] = c & 0xff
-            img.data[i++] = 0xff
+      initialize: function (numWorkers) {
+        this._workers = []
+        this.queue = []
+        this.free = []
+        this.messages = {}
+        for (let i=0; i<numWorkers; i++) {
+          const worker = new Worker('index.js')
+          worker.postMessage({command: 'setSeed', seed: worldSeed})
+          worker.onmessage = (e) => {
+            if (!e.data) return
+            if (this.queue.length > 0) {
+              const next = this.queue.shift()
+              this._renderTile(next.canvas, next.done, next.coords, e.data.workerID)
+            } else {
+              this.free.push(e.data.workerID)
+            }
+            if (!(e.data.tileID in this.messages)) return
+            const { canvas, done } = this.messages[e.data.tileID]
+            const ctx = canvas.getContext('2d')
+            const img = ctx.createImageData(64, 64)
+            img.data.set(new Uint8Array(e.data.pixels))
+            ctx.putImageData(img, 0, 0)
+            done(null, canvas)
           }
+          this._workers.push(worker)
+          this.free.push(i)
         }
-        ctx.putImageData(img, 0, 0)
-        cache[hash] = canvas
+      },
+
+      createTile: function (coords, done) {
+        const canvas = document.createElement('canvas')
+        canvas.width = 64
+        canvas.height = 64
+
+        if (this.free.length === 0) {
+          this.queue.push({canvas, done, coords})
+        } else {
+          this._renderTile(canvas, done, coords, this.free.pop())
+        }
         return canvas
+      },
+
+      _renderTile: function (canvas, done, coords, workerID) {
+        const tileID = `${coords.x},${coords.y},${coords.z}`
+        this.messages[tileID] = {canvas, done}
+        this._workers[workerID].postMessage({
+          command: 'render',
+          x: coords.x, 
+          y: coords.y, 
+          z: coords.z,
+          tileID: tileID,
+          workerID: workerID
+        })
       },
 
       getAttribution: function() {
@@ -102,7 +120,13 @@
       }
     })
 
-    map.addLayer( new L.GridLayer.Biomes() )
+    map.addLayer( new L.GridLayer.Biomes(8, worldSeed) )
+    new L.Hash(map)
+    L.control.mousePosition({
+      lngFirst: true,
+      lngFormatter: (x) => { return x * 256 },
+      latFormatter: (x) => { return -x * 256 }
+    }).addTo(map)
   </script>
   </body>
 </html>
