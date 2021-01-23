@@ -1,5 +1,6 @@
 const mcData = require('minecraft-data')('1.16.4')
 const { OverworldBiomeProvider } = require('../../lib/biomes/BiomeProvider')
+const StrongholdProducer = require('../../lib/structures/strongholds')
 
 let provider = null
 
@@ -15,6 +16,10 @@ for (const biome of mcData.biomesArray) {
 const commands = {
   'setSeed': (data) => {
     provider = new OverworldBiomeProvider(mcData, BigInt(data.seed))
+  },
+  'strongholds': (data) => {
+    data.strongholds = new StrongholdProducer(provider).getStrongholds()
+    self.postMessage(data)
   },
   'render': (data) => {
     if (!provider) return
