@@ -23,9 +23,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: npm install
     - run: npm test
-    - run: cd examples/biomemap/
-    - run: npm install
+    - run: cd examples/biomemap/ && npm install
     - uses: actions/upload-artifact@v2
       with:
         name: public
-        path: public/*
+        path: examples/biomemap/public/*
