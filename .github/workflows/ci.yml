@@ -28,7 +28,7 @@ jobs:
       with:
         name: public
         path: examples/biomemap/public/*
-DeployPages:
+  DeployPages:
     runs-on: ubuntu-latest
     needs: build
     if: ${{ github.event_name == 'push' }}
