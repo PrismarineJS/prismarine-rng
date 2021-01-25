@@ -26,9 +26,9 @@
     "url": "https://github.com/PrismarineJS/prismarine-rng/issues"
   },
   "standard": {
-    "parser": "babel-eslint",
     "ignore": [
-      "examples/biomemap/"
+      "lib/wasm/",
+      "examples/"
     ]
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-rng#readme",
