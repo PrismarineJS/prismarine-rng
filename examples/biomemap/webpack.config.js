@@ -1,4 +1,5 @@
 const webpack = require('webpack')
+const CopyPlugin = require('copy-webpack-plugin')
 const path = require('path')
 
 const config = {
@@ -10,17 +11,20 @@ const config = {
   },
   resolve: {
     fallback: {
-      crypto: require.resolve('crypto-browserify'),
       stream: require.resolve('stream-browserify'),
-      buffer: require.resolve('buffer/')
+      path: require.resolve('path-browserify'),
+      buffer: require.resolve('buffer/'),
+      fs: false
     }
   },
   plugins: [
     new webpack.ProvidePlugin({
-      process: 'process/browser'
-    }),
-    new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer']
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: '../../lib/wasm/WorldGen.wasm', to: './' }
+      ]
     })
   ],
   devServer: {
@@ -32,24 +36,6 @@ const config = {
     watchOptions: {
       ignored: /node_modules/
     }
-  },
-  module: {
-    rules: [
-      {
-        test: /\.(mjs|js|jsx)$/,
-        exclude: /node_modules/,
-        loader: 'babel-loader',
-        options: {
-          presets: [
-            '@babel/preset-env', {
-              plugins: [
-                '@babel/plugin-proposal-class-properties'
-              ]
-            }
-          ]
-        }
-      }
-    ]
   }
 }
 

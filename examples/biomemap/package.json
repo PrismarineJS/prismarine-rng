@@ -10,13 +10,9 @@
         "build-start": "npm run prepare && npm run prod-start"
     },
     "dependencies": {
-        "@babel/core": "^7.12.10",
-        "@babel/plugin-proposal-class-properties": "^7.12.1",
-        "@babel/preset-env": "^7.12.11",
-        "babel-loader": "^8.2.2",
         "buffer": "^6.0.3",
-        "crypto-browserify": "^3.12.0",
-        "process": "^0.11.10",
+        "copy-webpack-plugin": "^7.0.0",
+        "path-browserify": "^1.0.1",
         "prismarine-rng": "file:../../",
         "stream-browserify": "^3.0.0",
         "webpack": "^5.11.0",
