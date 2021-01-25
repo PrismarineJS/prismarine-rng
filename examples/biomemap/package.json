@@ -6,7 +6,7 @@
     "scripts": {
         "prepare": "webpack",
         "start": "webpack serve",
-        "prod-start": "http-server public/",
+        "prod-start": "light-server -s public/",
         "build-start": "npm run prepare && npm run prod-start"
     },
     "dependencies": {
@@ -24,6 +24,6 @@
         "webpack-dev-server": "^3.11.0"
     },
     "devDependencies": {
-        "http-server": "^0.12.3"
+        "light-server": "^2.9.1"
     }
 }
