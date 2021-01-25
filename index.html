@@ -79,6 +79,10 @@
           const worker = new Worker('index.js')
           worker.onmessage = (e) => {
             if (!e.data) return
+            if (e.data.command === 'ready' && e.data.workerID === 0) {
+              worker.postMessage({command: 'strongholds', workerID: 0})
+              return
+            }
             if (this.queue.length > 0) {
               const next = this.queue.shift()
               this._renderTile(next.canvas, next.done, next.coords, e.data.workerID)
@@ -116,9 +120,7 @@
             done(null, canvas)
           }
           this._workers.push(worker)
-          worker.postMessage({command: 'setSeed', seed: worldSeed})
-          if (i === 0) worker.postMessage({command: 'strongholds', workerID: 0})
-          else this.free.push(i)
+          worker.postMessage({command: 'setSeed', seed: worldSeed, workerID: i})
         }
       },
 
