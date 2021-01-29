@@ -38,6 +38,12 @@ const commands = {
     }
     const array = new Uint32Array(biomes)
     data.pixels = array.buffer
+
+    if (data.z > 5) {
+      const z = Math.pow(2, 6 - data.z)
+      data.treasures = generator.getTreasuresInArea(minX*z, minZ*z, minX*z+size*z, minZ*z+size*z)
+    }
+
     self.postMessage(data, [data.pixels])
   }
 }
