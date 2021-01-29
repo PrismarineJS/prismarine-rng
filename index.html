@@ -69,12 +69,33 @@
       maxZoom: 10
     })
 
+    function makeIcon(path, size=42) {
+      return L.icon({
+        iconUrl:     path,
+        iconSize:    [size, size], // size of the icon
+        iconAnchor:  [size/2, size/2], // point of the icon which will correspond to marker's location
+        popupAnchor: [0, -size/2] // point from which the popup should open relative to the iconAnchor
+      })
+    }
+
     L.GridLayer.Biomes = L.GridLayer.extend({
       initialize: function (numWorkers) {
+        const strongholdIcon = makeIcon('icon/stronghold.png')
+        const treasureIcon = makeIcon('icon/treasure.png', 26)
+        
+        this.overlays = {
+          'Strongholds': L.layerGroup(),
+          'Burried Treasures': L.layerGroup()
+        }
+        for (const overlay in this.overlays) map.addLayer(this.overlays[overlay])
+        L.control.layers({}, this.overlays).addTo(map)
+
         this._workers = []
         this.queue = []
         this.free = []
         this.messages = {}
+        this._markerStore = {}
+
         for (let i=0; i<numWorkers; i++) {
           const worker = new Worker('index.js')
           worker.onmessage = (e) => {
@@ -90,34 +111,33 @@
               this.free.push(e.data.workerID)
             }
             if (e.data.command === 'strongholds') {
-              console.log(e.data.strongholds)
-              const strongholdIcon = L.icon({
-                iconUrl: 'icon/stronghold.png',
-                iconSize:     [42, 42], // size of the icon
-                iconAnchor:   [21, 21], // point of the icon which will correspond to marker's location
-                popupAnchor:  [0, -21] // point from which the popup should open relative to the iconAnchor
-              })
-              const strongholds = []
-              for (const s of e.data.strongholds) {
+              this.overlays['Strongholds'].addLayer(L.layerGroup(e.data.strongholds.map((s) => {
                 const marker = L.marker([-s.z / 256, s.x / 256], {icon: strongholdIcon})
-                strongholds.push(marker)
                 marker.bindPopup('<b>Stronghold</b><br/>('+s.x+', '+s.z+')')
-              }
-              
-              const overlays = {
-                'Strongholds': L.layerGroup(strongholds)
-              }
-              map.addLayer(overlays.Strongholds)
-              L.control.layers({}, overlays).addTo(map)
+                return marker
+              })))
               return
             }
+
             if (!(e.data.tileID in this.messages)) return
+
             const { canvas, done } = this.messages[e.data.tileID]
             const ctx = canvas.getContext('2d')
             const img = ctx.createImageData(64, 64)
             img.data.set(new Uint8Array(e.data.pixels))
             ctx.putImageData(img, 0, 0)
-            done(null, canvas)
+
+            if (e.data.treasures) {
+              const markers = L.layerGroup(e.data.treasures.map((s) => {
+                const marker = L.marker([-s.z / 256, s.x / 256], {icon: treasureIcon})
+                marker.bindPopup('<b>Treasure</b><br/>('+s.x+', '+s.z+')')
+                return marker
+              }))
+              this._markerStore[e.data.tileID] = markers
+              this.overlays['Burried Treasures'].addLayer(markers)
+            }
+
+            done()
           }
           this._workers.push(worker)
           worker.postMessage({command: 'setSeed', seed: worldSeed, workerID: i})
@@ -138,7 +158,7 @@
       },
 
       _renderTile: function (canvas, done, coords, workerID) {
-        const tileID = `${coords.x},${coords.y},${coords.z}`
+        const tileID = this._tileCoordsToKey(coords)
         this.messages[tileID] = {canvas, done}
         this._workers[workerID].postMessage({
           command: 'render',
@@ -150,6 +170,14 @@
         })
       },
 
+      _removeTile: function(key) {
+        if (this._markerStore[key]) {
+          this._markerStore[key].remove()
+          delete this._markerStore[key]
+        }
+        return L.GridLayer.prototype._removeTile.call(this, key)
+      },
+
       getAttribution: function() {
         return "<a href='https://github.com/PrismarineJS/prismarine-rng'>PrismarineJS</a>"
       }
@@ -159,8 +187,14 @@
     new L.Hash(map)
     L.control.mousePosition({
       lngFirst: true,
-      lngFormatter: (x) => { return x * 256 },
-      latFormatter: (x) => { return -x * 256 }
+      lngFormatter: (x) => {
+        const v = x * 256
+        return v + '(' + Math.floor(v / 16)+')'
+      },
+      latFormatter: (x) => {
+        const v = -x * 256
+        return v + '(' + Math.floor(v / 16)+')'
+      }
     }).addTo(map)
   </script>
   </body>
