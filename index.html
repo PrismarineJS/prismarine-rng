@@ -32,13 +32,6 @@
         -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
       }
 
-      .leaflet-marker-icon {
-        -webkit-filter: drop-shadow(1px 1px 0 white)
-                        drop-shadow(-1px -1px 0 white);
-        filter: drop-shadow(1px 1px 0 white) 
-                drop-shadow(-1px -1px 0 white);
-      }
-
       .leaflet-container .leaflet-control-mouseposition {
         background-color: rgba(255, 255, 255, 0.7);
         box-shadow: 0 0 5px #bbb;
@@ -69,24 +62,44 @@
       maxZoom: 10
     })
 
-    function makeIcon(path, size=42) {
+    function makeIcon(path, size=26) {
       return L.icon({
         iconUrl:     path,
-        iconSize:    [size, size], // size of the icon
+        //iconSize:    [size, size], // size of the icon
         iconAnchor:  [size/2, size/2], // point of the icon which will correspond to marker's location
         popupAnchor: [0, -size/2] // point from which the popup should open relative to the iconAnchor
       })
     }
 
+    const structureNames = {
+      'village': ["Villages", 'Village'],
+      'shipwreck': ["Shipwrecks", 'Shipwreck'],
+      'ruined_portal': ["Ruined Portals", 'Ruined Portal'],
+      'mansion': ["Mansions", 'Mansion'],
+      'nether_fossil': ["Nether fossils", 'Nether Fossil'],
+      'endcity': ['End Cities', 'End City'],
+      'igloo': ['Igloos', 'Igloo'],
+      'fortress': ['Fortresses', 'Fortress'],
+      'bastion_remnant': ['Bastion Remnants', 'Bastion Remnant'],
+      'swamp_hut': ["Swamp Huts", 'Swamp Hut'],
+      'monument': ['Monuments', 'Monument'],
+      'pillager_outpost': ['Pillager Outposts', 'Pillager Outpost'],
+      'ocean_ruin': ['Ocean Ruins', 'Ocean Ruin'],
+      'desert_pyramid': ['Desert Temples', 'Desert Temple'],
+      'jungle_pyramid': ['Jungle Pyramids', 'Jungle Pyramid'],
+      'stronghold': ['Strongholds', 'Stronghold'],
+      'buried_treasure': ['Buried Treasures', 'Buried Treasure']
+    }
+
     L.GridLayer.Biomes = L.GridLayer.extend({
       initialize: function (numWorkers) {
-        const strongholdIcon = makeIcon('icon/stronghold.png')
-        const treasureIcon = makeIcon('icon/treasure.png', 26)
-        
-        this.overlays = {
-          'Strongholds': L.layerGroup(),
-          'Burried Treasures': L.layerGroup()
+        const icons = {}
+        this.overlays = {}
+        for (const name in structureNames) {
+          icons[name] = makeIcon('icon/' + name + '.png')
+          this.overlays[structureNames[name][0]] = L.layerGroup()
         }
+        
         for (const overlay in this.overlays) map.addLayer(this.overlays[overlay])
         L.control.layers({}, this.overlays).addTo(map)
 
@@ -112,7 +125,7 @@
             }
             if (e.data.command === 'strongholds') {
               this.overlays['Strongholds'].addLayer(L.layerGroup(e.data.strongholds.map((s) => {
-                const marker = L.marker([-s.z / 256, s.x / 256], {icon: strongholdIcon})
+                const marker = L.marker([-s.z / 256, s.x / 256], {icon: icons['stronghold']})
                 marker.bindPopup('<b>Stronghold</b><br/>('+s.x+', '+s.z+')')
                 return marker
               })))
@@ -127,14 +140,15 @@
             img.data.set(new Uint8Array(e.data.pixels))
             ctx.putImageData(img, 0, 0)
 
-            if (e.data.treasures) {
-              const markers = L.layerGroup(e.data.treasures.map((s) => {
-                const marker = L.marker([-s.z / 256, s.x / 256], {icon: treasureIcon})
-                marker.bindPopup('<b>Treasure</b><br/>('+s.x+', '+s.z+')')
+            for (const structure in e.data.structures) {
+              const markers = L.layerGroup(e.data.structures[structure].map((s) => {
+                const marker = L.marker([-s.z / 256, s.x / 256], {icon: icons[structure]})
+                marker.bindPopup('<b>'+structureNames[structure][1]+'</b><br/>('+s.x+', '+s.z+')')
                 return marker
               }))
-              this._markerStore[e.data.tileID] = markers
-              this.overlays['Burried Treasures'].addLayer(markers)
+              if (!this._markerStore[e.data.tileID]) this._markerStore[e.data.tileID] = []
+              this._markerStore[e.data.tileID].push(markers)
+              this.overlays[structureNames[structure][0]].addLayer(markers)
             }
 
             done()
@@ -172,7 +186,7 @@
 
       _removeTile: function(key) {
         if (this._markerStore[key]) {
-          this._markerStore[key].remove()
+          for (const markers of this._markerStore[key]) markers.remove()
           delete this._markerStore[key]
         }
         return L.GridLayer.prototype._removeTile.call(this, key)
