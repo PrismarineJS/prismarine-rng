@@ -38,10 +38,16 @@ const commands = {
     }
     const array = new Uint32Array(biomes)
     data.pixels = array.buffer
+    data.structures = {}
 
     if (data.z > 5) {
       const z = Math.pow(2, 6 - data.z)
-      data.treasures = generator.getTreasuresInArea(minX*z, minZ*z, minX*z+size*z, minZ*z+size*z)
+      for (const structure of generator.getKnownStructures().filter(x => x !== 'strongholds')) {
+        const structures = generator.getStructures(minX*z, minZ*z, minX*z+size*z, minZ*z+size*z, structure)
+        if (structures.length > 0) {
+          data.structures[structure] = structures
+        }
+      }
     }
 
     self.postMessage(data, [data.pixels])
