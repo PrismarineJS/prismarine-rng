@@ -5,7 +5,7 @@ const { createWorldGenerator } = require('prismarine-rng')
 const fs = require('fs')
 const { createCanvas } = require('canvas')
 
-const worldSeed = 541515181818n
+const worldSeed = -7621051612768298496n
 
 async function main () {
   const generator = await createWorldGenerator(mcData, worldSeed, 'overworld')

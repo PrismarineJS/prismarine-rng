@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Random.h"
+#include "../Random.h"
 
 struct PerlinNoiseSampler {
   static constexpr const int GRADIENTS[][3] = {

@@ -33,7 +33,7 @@ namespace Biomes {
     Biome(const MC::Version v, const Dimension dim, const int id, const char*,
           const Category cat, const Precipitation pre, float temp, float scale,
           float depth, Biome* parent)
-    : version(v), dimension(dim), id(id), category(cat), precipitation(pre), parent(parent) {
+    : version(v), dimension(dim), id(id), category(cat), precipitation(pre), parent(parent), scale(scale), depth(depth) {
       byId[id] = this;
 
       if (category == Category::OCEAN) {
@@ -57,6 +57,8 @@ namespace Biomes {
     Temperature temperature;
     Biome* parent;
     Biome* child{nullptr};
+    float scale;
+    float depth;
   };
 
   Biome OCEAN{MC::Version::v1_8, Dimension::OVERWORLD, 0, "ocean", Biome::Category::OCEAN, Biome::Precipitation::P_RAIN, 0.5F, 0.100F, -1.000F, nullptr};

@@ -2,7 +2,7 @@
 
 #include "Biomes.h"
 #include "Random.h"
-#include "Perlin.h"
+#include "noise/Perlin.h"
 
 #include <cstdio>
 #include <cstdint>
