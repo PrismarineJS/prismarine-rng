@@ -1,0 +1,57 @@
+[
+  {
+    "name": "village",
+    "resolution": 16,
+    "offsetInWorld": 4,
+    "dimension": "overworld",
+    "salt": "10387312",
+    "spacing": 32,
+    "separation": 8,
+    "triangular": false,
+    "validBiomes": {
+      "default": ["plains", "desert", "savanna"],
+      "16w20a": ["plains", "desert", "savanna", "taiga"],
+      "18w49a": ["plains", "desert", "savanna", "taiga", "snowy_tundra"]
+    },
+    "complexVillageCheck": {
+      "default": true,
+      "16w20a": false
+    },
+    "buggyCoordinates": {
+      "default": false,
+      "18w06a": true,
+      "1.13-pre4": false,
+      "1.13-pre7": true,
+      "18w30a": false
+    }
+  },
+  {
+    "name": "shipwreck",
+    "resolution": 16,
+    "offsetInWorld": 8,
+    "minVersion": "18w11a",
+    "dimension": "overworld",
+    "salt": "165745295",
+    "spacing": {
+      "default": 15,
+      "1.13-pre7": 16,
+      "20w06a": 24
+    },
+    "separation": {
+      "default": 8,
+      "20w06a": 4
+    },
+    "triangular": false,
+    "validBiomes": [
+      "beach", "snowy_beach", "ocean", "deep_ocean", "cold_ocean", "deep_cold_ocean", "warm_ocean",
+      "deep_warm_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "frozen_ocean", "deep_frozen_ocean"
+    ],
+    "buggyCoordinates": {
+      "default": false,
+      "18w06a": true,
+      "1.13-pre4": false,
+      "1.13-pre7": true,
+      "18w30a": false
+    }
+  }
+]
