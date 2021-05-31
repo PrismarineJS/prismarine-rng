@@ -40,7 +40,7 @@
     "mineflayer": "^3.0.0",
     "canvas": "^2.6.1",
     "babel-eslint": "^10.1.0",
-    "jest": "^26.1.0",
+    "jest": "^27.0.3",
     "prismarine-rng": "file:.",
     "standard": "^16.0.3"
   }
