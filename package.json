@@ -1,6 +1,6 @@
 {
   "name": "prismarine-rng",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Collection of utilities to work with minecraft RNG.",
   "main": "index.js",
   "scripts": {
@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/PrismarineJS/prismarine-rng#readme",
   "dependencies": {
+    "big-rational-maths": "file:../big-rational-maths",
     "minecraft-data": "^2.74.0",
     "prismarine-item": "^1.5.0"
   },
