@@ -1,6 +1,6 @@
 {
   "name": "prismarine-rng",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Collection of utilities to work with minecraft RNG.",
   "main": "index.js",
   "scripts": {
@@ -37,10 +37,10 @@
     "prismarine-item": "^1.5.0"
   },
   "devDependencies": {
-    "mineflayer": "3.0.0",
+    "mineflayer": "^3.0.0",
     "canvas": "^2.6.1",
     "babel-eslint": "^10.1.0",
-    "jest": "^26.1.0",
+    "jest": "^27.0.4",
     "prismarine-rng": "file:.",
     "standard": "^16.0.3"
   }
