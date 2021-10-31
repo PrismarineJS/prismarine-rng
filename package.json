@@ -1,6 +1,6 @@
 {
   "name": "prismarine-rng",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Collection of utilities to work with minecraft RNG.",
   "main": "index.js",
   "scripts": {
